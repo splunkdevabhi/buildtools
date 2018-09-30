@@ -13,7 +13,7 @@ PACKAGE_DIRS = $(PACKAGES_DIR) $(PACKAGES_SPLUNK_BASE_DIR) $(PACKAGES_SPLUNK_SEM
 
 MAIN_APP          ?= $(shell ls -1 $(APPS_DIR))
 MAIN_APP_DESC     ?= Add on for Splunk
-main_app_files     = $(shell find $(APPS_DIR)/$(MAIN_APP) -type f ! -iname "app.manifest" ! -iname ".*")
+main_app_files     = $(shell find $(APPS_DIR)/$(MAIN_APP) -type f ! -iname "app.manifest" ! -iname "app.conf" ! -iname ".*")
 MAIN_APP_OUT       = $(BUILD_DIR)/$(MAIN_APP)
 
 docs_files         = $(shell find docs -type f ! -iname ".*")
@@ -100,8 +100,9 @@ $(BUILD_DIR)/%: $(APPS_DIR)/%
 	chmod o-w,g-w,a-x $@
 
 # Copy and update app.conf
-$(MAIN_APP_OUT)/default/app.conf: $(APPS_DIR)/$(MAIN_APP)/default/app.conf
-	@mkdir -p "$(@D)"
+$(MAIN_APP_OUT)/default/app.conf: $(ALL_DIRS)\
+																	$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
+																	$(APPS_DIR)/$(MAIN_APP)/default/app.conf
 	cp $(APPS_DIR)/$(MAIN_APP)/default/app.conf $(MAIN_APP_OUT)/default/app.conf
 	crudini --set $(MAIN_APP_OUT)/default/app.conf launcher version $(APP_VERSION)
 	crudini --set $(MAIN_APP_OUT)/default/app.conf launcher description $(MAIN_DESCRIPTION)
@@ -109,9 +110,27 @@ $(MAIN_APP_OUT)/default/app.conf: $(APPS_DIR)/$(MAIN_APP)/default/app.conf
 	crudini --set $(MAIN_APP_OUT)/default/app.conf ui label $(MAIN_LABEL)
 	chmod o-w,g-w,a-x $@
 
+# Generate readme
+
+#Produced a normalized RST file with substitutions applied
+out/README/rst/index.rst: $(readme_files)
+	@$(SPHINXBUILD) -M rst -d out/README/doctrees $(README_TEMPLATE) out/README/rst $(SPHINXOPTS) -D rst_prolog="$$rst_prolog"
+
+
+
+#Convert Normalized rst to mardown format readme for the project
+$(MAIN_APP_OUT)/README: out/README/rst/index.rst
+		pandoc -s -t commonmark -o $(MAIN_APP_OUT)/README out/README/rst/index.rst
+		chmod o-w,g-w,a-x $@
+
 #Copy and update app.manifest
-$(MAIN_APP_OUT)/app.manifest: $(APPS_DIR)/$(MAIN_APP)/app.manifest $(MAIN_APP_OUT)/$(LICENSE_FILE)
-	mkdir -p "$(@D)"
+$(MAIN_APP_OUT)/app.manifest: $(ALL_DIRS)\
+															$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
+															$(MAIN_APP_OUT)/$(LICENSE_FILE) \
+															$(MAIN_APP_OUT)/default/app.conf \
+															$(APPS_DIR)/$(MAIN_APP)/app.manifest \
+															$(MAIN_APP_OUT)/README
+
 	cp $(APPS_DIR)/$(MAIN_APP)/app.manifest $(MAIN_APP_OUT)/app.manifest
 	slim generate-manifest --update $(MAIN_APP_OUT) | sponge $(MAIN_APP_OUT)/app.manifest
 	jq '.info.title="$(MAIN_LABEL)"'  $(MAIN_APP_OUT)/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
@@ -120,7 +139,8 @@ $(MAIN_APP_OUT)/app.manifest: $(APPS_DIR)/$(MAIN_APP)/app.manifest $(MAIN_APP_OU
 	chmod o-w,g-w,a-x $@
 
 #Copy and update license file
-$(MAIN_APP_OUT)/$(LICENSE_FILE): $(LICENSE_FILE)
+$(MAIN_APP_OUT)/$(LICENSE_FILE): $(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
+																 $(LICENSE_FILE)
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
@@ -130,15 +150,6 @@ $(OUT_DIR)/docs/epub/$(EPUB_NAME).epub: $(docs_files)
 $(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(OUT_DIR)/docs/epub/$(EPUB_NAME).epub
 	cp $< $@
 	chmod o-w,g-w,a-x $@
-
-#Produced a normalized RST file with substitutions applied
-out/README/rst/index.rst: $(readme_files)
-	@$(SPHINXBUILD) -M rst -d out/README/doctrees $(README_TEMPLATE) out/README/rst $(SPHINXOPTS) -D rst_prolog="$$rst_prolog"
-
-#Convert Normalized rst to mardown format readme for the project
-$(MAIN_APP_OUT)/README: out/README/rst/index.rst
-		pandoc -s -t commonmark -o $(MAIN_APP_OUT)/README out/README/rst/index.rst
-		chmod o-w,g-w,a-x $@
 
 $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz: $(ALL_DIRS) \
 				$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files))\
