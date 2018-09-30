@@ -144,17 +144,14 @@ $(MAIN_APP_OUT)/$(LICENSE_FILE): $(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
-$(OUT_DIR)/docs/epub/$(EPUB_NAME).epub: \
-				$(docs_files)
+$(OUT_DIR)/docs/epub/$(EPUB_NAME).epub: $(docs_files)
 	@$(SPHINXBUILD) -M epub "$(SPHINXSOURCEDIR)" "$(SPHINXBUILDDIR)" $(SPHINXOPTS) -D epub_basename=$(EPUB_NAME) -D rst_prolog="$$rst_prolog"
 
-$(MAIN_APP_OUT)/$(EPUB_NAME).epub: \
-				$(OUT_DIR)/docs/epub/$(EPUB_NAME).epub
+$(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(OUT_DIR)/docs/epub/$(EPUB_NAME).epub
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
-$(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz:\
-				$(ALL_DIRS) \
+$(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz: $(ALL_DIRS) \
 				$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files))\
 				$(MAIN_APP_OUT)/$(LICENSE_FILE)\
 				$(MAIN_APP_OUT)/app.manifest \
