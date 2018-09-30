@@ -113,6 +113,7 @@ $(MAIN_APP_OUT)/default/app.conf: $(ALL_DIRS)\
 # Generate readme
 
 #Produced a normalized RST file with substitutions applied
+.INTERMEDIATE: out/README/rst/index.rst
 out/README/rst/index.rst: $(readme_files)
 	@$(SPHINXBUILD) -M rst -d out/README/doctrees $(README_TEMPLATE) out/README/rst $(SPHINXOPTS) -D rst_prolog="$$rst_prolog"
 
@@ -144,6 +145,7 @@ $(MAIN_APP_OUT)/$(LICENSE_FILE): $(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
+.INTERMEDIATE: $(OUT_DIR)/docs/epub/$(EPUB_NAME).epub
 $(OUT_DIR)/docs/epub/$(EPUB_NAME).epub: $(docs_files)
 	@$(SPHINXBUILD) -M epub "$(SPHINXSOURCEDIR)" "$(SPHINXBUILDDIR)" $(SPHINXOPTS) -D epub_basename=$(EPUB_NAME) -D rst_prolog="$$rst_prolog"
 
