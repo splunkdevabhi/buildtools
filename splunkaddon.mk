@@ -173,7 +173,6 @@ package_test: ## Package Test
 package_test: test-reports/$(MAIN_APP).xml
 
 docker_package:
-	docker run --rm --volume `pwd`:/usr/build -w /usr/build -it splservices/addonbuildimage bash -c "make package"
-
+	docker run --rm --volume `pwd`:/usr/build -w /usr/build -it splservices/addonbuildimage bash -c "make package_test"
 docker_package_test:
 	docker run --rm --volume `pwd`:/usr/build -w /usr/build -it splservices/addonbuildimage bash -c "make package_test"
