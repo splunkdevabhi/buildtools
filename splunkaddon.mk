@@ -1,23 +1,3 @@
-#
-# Seckit Identity Management Common for ES  - A utility add on to properly format Assets and
-# Identifies for ES
-#
-# Copyright 2017-2018 Splunk Inc, <rfaircloth@splunk.com>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-EXECUTABLES = crudini jq sponge slim splunk-appinspect pandoc sphinx-build
-K := $(foreach exec,$(EXECUTABLES),$(if $(shell which $(exec)),some string,$(error "No $(exec) in PATH")))
 
 APPS_DIR      ?= src
 OUT_DIR       ?= out
@@ -96,6 +76,12 @@ help: ## Show this help message.
 
 ALL_DIRS = $(OUT_DIR) $(BUILD_DIR) $(TEST_RESULTS) $(PACKAGE_DIRS)
 
+.PHONY: CHECK_ENV
+CHECK_ENV: ##Check the environment
+CHECK_ENV:
+	EXECUTABLES = crudini jq sponge slim splunk-appinspect pandoc sphinx-build
+	K := $(foreach exec,$(EXECUTABLES),$(if $(shell which $(exec)),some string,$(error "No $(exec) in PATH")))
+
 .PHONY: clean
 clean:
 	@rm -rf $(OUT_DIR)
@@ -126,12 +112,11 @@ $(MAIN_APP_OUT)/default/app.conf: $(APPS_DIR)/$(MAIN_APP)/default/app.conf
 #Copy and update app.manifest
 $(MAIN_APP_OUT)/app.manifest: $(APPS_DIR)/$(MAIN_APP)/app.manifest $(MAIN_APP_OUT)/$(LICENSE_FILE)
 	mkdir -p "$(@D)"
-	rm -f $(MAIN_APP_OUT)/app.tmp
 	cp $(APPS_DIR)/$(MAIN_APP)/app.manifest $(MAIN_APP_OUT)/app.manifest
 	slim generate-manifest --update $(MAIN_APP_OUT) | sponge $(MAIN_APP_OUT)/app.manifest
-	jq '.info.title="$(MAIN_LABEL)"'  out/work/SecKit_SA_idm_common/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
-	jq '.info.description="$(MAIN_DESCRIPTION)"'  out/work/SecKit_SA_idm_common/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
-	jq '.info.license= { "name": "$(COPYRIGHT_LICENSE)", "text": "$(LICENSE_FILE)", "uri": "$(LICENSE_URL)" }'  out/work/SecKit_SA_idm_common/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
+	jq '.info.title="$(MAIN_LABEL)"'  $(MAIN_APP_OUT)/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
+	jq '.info.description="$(MAIN_DESCRIPTION)"'  $(MAIN_APP_OUT)/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
+	jq '.info.license= { "name": "$(COPYRIGHT_LICENSE)", "text": "$(LICENSE_FILE)", "uri": "$(LICENSE_URL)" }'  $(MAIN_APP_OUT)/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
 	chmod o-w,g-w,a-x $@
 
 #Copy and update license file
