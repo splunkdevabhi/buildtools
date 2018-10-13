@@ -218,3 +218,17 @@ docker_dev: docker_build
 				-e 'SPLUNK_START_ARGS=--accept-license' \
 				-e 'SPLUNK_PASSWORD=Changed!11' \
 				$(DOCKER_IMG)-dev:latest start
+
+
+add-copyright: ## Add copyright notice header to supported file types
+add-copyright:
+	$(COPYRIGHT_CMD) \
+		$(COPYRIGHT_LICENSE_ARG) \
+	  --add-path $(APPS_DIR)/$(MAIN_APP) \
+	  --guess-extension \
+	  --copyright-holder '$(COPYRIGHT_HOLDER)' \
+	  --copyright-software '$(COPYRIGHT_SOFTWARE)' \
+	  --copyright-software-description '$(COPYRIGHT_SOFTWARE_DESCRIPTION)' \
+	  --copyright-year $(COPYRIGHT_YEAR) \
+	  --word-wrap $(COPYRIGHT_WORD_WRAP) \
+	  --output-dir .
