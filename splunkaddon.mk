@@ -8,13 +8,16 @@ PACKAGES_DIR               = $(OUT_DIR)/packages
 PACKAGES_SPLUNK_BASE_DIR   = $(PACKAGES_DIR)/splunkbase
 PACKAGES_SPLUNK_SEMVER_DIR = $(PACKAGES_DIR)/splunksemver
 PACKAGES_SPLUNK_SLIM_DIR   = $(PACKAGES_DIR)/splunkslim
+PACKAGES_DIR_SPLUNK_DEPS   = $(PACKAGES_DIR)/splunk_deps
 
-PACKAGE_DIRS = $(PACKAGES_DIR) $(PACKAGES_SPLUNK_BASE_DIR) $(PACKAGES_SPLUNK_SEMVER_DIR) $(PACKAGES_SPLUNK_SLIM_DIR)
+PACKAGE_DIRS = $(PACKAGES_DIR) $(PACKAGES_SPLUNK_BASE_DIR) $(PACKAGES_SPLUNK_SEMVER_DIR) $(PACKAGES_SPLUNK_SLIM_DIR) $(PACKAGES_DIR_SPLUNK_DEPS)
 
 MAIN_APP          ?= $(shell ls -1 $(APPS_DIR))
 MAIN_APP_DESC     ?= Add on for Splunk
 main_app_files     = $(shell find $(APPS_DIR)/$(MAIN_APP) -type f ! -iname "app.manifest" ! -iname "app.conf" ! -iname ".*")
 MAIN_APP_OUT       = $(BUILD_DIR)/$(MAIN_APP)
+
+DEPS 							 := $(shell find deps -type d -print -maxdepth 1 -mindepth 1)
 
 docs_files         = $(shell find docs -type f ! -iname ".*")
 README_TEMPLATE   ?= buildtools/templates/README
@@ -153,12 +156,18 @@ $(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(OUT_DIR)/docs/epub/$(EPUB_NAME).epub
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
-$(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz: $(ALL_DIRS) \
-				$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files))\
+.PHONY: $(DEPS)
+$(DEPS):
+	$(MAKE) -C $@ build OUT_DIR=$(realpath $(PACKAGES_DIR_SPLUNK_DEPS)) BUILD_DIR=$(realpath $(BUILD_DIR))
+
+build: $(ALL_DIRS) $(DEPS) \
+				$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
 				$(MAIN_APP_OUT)/$(LICENSE_FILE)\
 				$(MAIN_APP_OUT)/app.manifest \
 				$(MAIN_APP_OUT)/$(EPUB_NAME).epub \
 				$(MAIN_APP_OUT)/README
+
+$(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz: build
 	slim package -o $(PACKAGES_SPLUNK_BASE_DIR) $(MAIN_APP_OUT)
 
 package: ## Package each app
@@ -174,3 +183,21 @@ docker_package:
 	docker run --rm --volume `pwd`:/usr/build -w /usr/build -it splservices/addonbuildimage bash -c "make package_test"
 docker_package_test:
 	docker run --rm --volume `pwd`:/usr/build -w /usr/build -it splservices/addonbuildimage bash -c "make package_test"
+
+docker_run: package
+	docker run \
+	      -it \
+				-v $(realpath $(MAIN_APP_OUT)):/opt/splunk/etc/apps/$(MAIN_APP) \
+				-p 8000:8000 \
+				-e 'SPLUNK_START_ARGS=--accept-license' \
+				-e 'SPLUNK_PASSWORD=Changed!11' \
+				ta-cef-for-splunk-dev:latest start
+
+docker_dev: package
+	docker run \
+	      -it \
+				-v $(realpath $(APPS_DIR)/$(MAIN_APP)):/opt/splunk/etc/apps/$(MAIN_APP) \
+				-p 8000:8000 \
+				-e 'SPLUNK_START_ARGS=--accept-license' \
+				-e 'SPLUNK_PASSWORD=Changed!11' \
+				ta-cef-for-splunk-dev:latest start
