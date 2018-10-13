@@ -162,6 +162,7 @@ $(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(OUT_DIR)/docs/epub/$(EPUB_NAME).epub
 
 .PHONY: $(DEPS)
 $(DEPS):
+	@echo ADD $(BUILD_DIR)/$(shell find $@ -type d -print -maxdepth 0 | awk -F/ '{print $$NF}') /opt/splunk/etc/apps/$(shell find $@ -type d -print -maxdepth 0 | awk -F/ '{print $$NF}') >>$(BUILD_DIR)/Dockerfile
 	$(MAKE) -C $@ build OUT_DIR=$(realpath $(PACKAGES_DIR_SPLUNK_DEPS)) BUILD_DIR=$(realpath $(BUILD_DIR))
 
 build: $(ALL_DIRS) $(DEPS) \
@@ -193,7 +194,14 @@ $(shell docker ps -qa --no-trunc  --filter status=exited --filter ancestor=$(DOC
 
 docker_clean: $(shell docker ps -qa --no-trunc  --filter status=exited --filter ancestor=$(DOCKER_IMG)-dev)
 
-docker_run: package
+.PHONY: $(BUILD_DIR)/Dockerfile
+$(BUILD_DIR)/Dockerfile:
+	cp buildtools/Docker/standalone_dev/Dockerfile $(BUILD_DIR)/Dockerfile
+
+docker_build: $(BUILD_DIR)/Dockerfile build
+	docker build -t $(DOCKER_IMG)-dev:latest -f $(BUILD_DIR)/Dockerfile .
+
+docker_run: docker_build
 	docker run \
 	      -it \
 				-v $(realpath $(MAIN_APP_OUT)):/opt/splunk/etc/apps/$(MAIN_APP) \
@@ -202,7 +210,7 @@ docker_run: package
 				-e 'SPLUNK_PASSWORD=Changed!11' \
 				$(DOCKER_IMG)-dev:latest start
 
-docker_dev: package
+docker_dev: docker_build
 	docker run \
 	      -it \
 				-v $(realpath $(APPS_DIR)/$(MAIN_APP)):/opt/splunk/etc/apps/$(MAIN_APP) \
