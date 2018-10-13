@@ -120,8 +120,8 @@ out/README/rst/index.rst: $(readme_files)
 
 
 #Convert Normalized rst to mardown format readme for the project
-$(MAIN_APP_OUT)/README: out/README/rst/index.rst
-		pandoc -s -t commonmark -o $(MAIN_APP_OUT)/README out/README/rst/index.rst
+$(MAIN_APP_OUT)/README.md: out/README/rst/index.rst
+		pandoc -s -t commonmark -o $(MAIN_APP_OUT)/README.md out/README/rst/index.rst
 		chmod o-w,g-w,a-x $@
 
 #Copy and update app.manifest
@@ -130,7 +130,7 @@ $(MAIN_APP_OUT)/app.manifest: $(ALL_DIRS)\
 															$(MAIN_APP_OUT)/$(LICENSE_FILE) \
 															$(MAIN_APP_OUT)/default/app.conf \
 															$(APPS_DIR)/$(MAIN_APP)/app.manifest \
-															$(MAIN_APP_OUT)/README
+															$(MAIN_APP_OUT)/README.md
 
 	cp $(APPS_DIR)/$(MAIN_APP)/app.manifest $(MAIN_APP_OUT)/app.manifest
 	slim generate-manifest --update $(MAIN_APP_OUT) | sponge $(MAIN_APP_OUT)/app.manifest
