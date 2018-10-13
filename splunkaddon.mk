@@ -32,6 +32,8 @@ PACKAGE_SLUG       =
 PACKAGE_VERSION    = $(VERSION)
 APP_VERSION        = $(VERSION)
 
+DOCKER_IMG				= $(shell echo $(MAIN_APP) | tr '[:upper:]' '[:lower:]')
+
 
 ifneq (,$(findstring master, $(BRANCH) ))
 	VERSION=$(shell gitversion /showvariable MajorMinorPatch)
@@ -89,6 +91,8 @@ CHECK_ENV:
 clean:
 	@rm -rf $(OUT_DIR)
 	@rm -rf $(TEST_RESULTS)
+
+clean_all: clean docker_clean
 
 # Create all build directories
 $(ALL_DIRS):
@@ -184,6 +188,11 @@ docker_package:
 docker_package_test:
 	docker run --rm --volume `pwd`:/usr/build -w /usr/build -it splservices/addonbuildimage bash -c "make package_test"
 
+$(shell docker ps -qa --no-trunc  --filter status=exited --filter ancestor=$(DOCKER_IMG)-dev):
+	docker rm $@
+
+docker_clean: $(shell docker ps -qa --no-trunc  --filter status=exited --filter ancestor=$(DOCKER_IMG)-dev)
+
 docker_run: package
 	docker run \
 	      -it \
@@ -191,7 +200,7 @@ docker_run: package
 				-p 8000:8000 \
 				-e 'SPLUNK_START_ARGS=--accept-license' \
 				-e 'SPLUNK_PASSWORD=Changed!11' \
-				ta-cef-for-splunk-dev:latest start
+				$(DOCKER_IMG)-dev:latest start
 
 docker_dev: package
 	docker run \
@@ -200,4 +209,4 @@ docker_dev: package
 				-p 8000:8000 \
 				-e 'SPLUNK_START_ARGS=--accept-license' \
 				-e 'SPLUNK_PASSWORD=Changed!11' \
-				ta-cef-for-splunk-dev:latest start
+				$(DOCKER_IMG)-dev:latest start
