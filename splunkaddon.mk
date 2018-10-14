@@ -2,9 +2,9 @@
 APPS_DIR         ?= src
 MAIN_APP         ?= $(shell ls -1 $(APPS_DIR))
 OUT_DIR          ?= out
-BUILD_DIR        ?= out/work/$(MAIN_APP)
-BUILD_DOCS_DIR   ?= out/docs/$(MAIN_APP)
-BUILD_README_DIR ?= out/README/$(MAIN_APP)
+BUILD_DIR        ?= out/app
+BUILD_DOCS_DIR   ?= out/docs
+BUILD_README_DIR ?= out/README
 TEST_RESULTS    = test-reports
 
 PACKAGES_DIR               = $(OUT_DIR)/packages
@@ -103,62 +103,63 @@ $(ALL_DIRS):
 
 #Copy all source files for main app
 $(BUILD_DIR)/%: $(APPS_DIR)/%
-	@mkdir -p $(@D)
+	mkdir -p $(@D)
 #	@chmod o-w,g-w,a+X  $(@D)
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
 # Copy and update app.conf
-$(MAIN_APP_OUT)/default/app.conf: $(ALL_DIRS)\
+$(BUILD_DIR)/$(MAIN_APP)/default/app.conf: $(ALL_DIRS)\
 																	$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
 																	$(APPS_DIR)/$(MAIN_APP)/default/app.conf
-	cp $(APPS_DIR)/$(MAIN_APP)/default/app.conf $(MAIN_APP_OUT)/default/app.conf
-	crudini --set $(MAIN_APP_OUT)/default/app.conf launcher version $(APP_VERSION)
-	crudini --set $(MAIN_APP_OUT)/default/app.conf launcher description $(MAIN_DESCRIPTION)
-	crudini --set $(MAIN_APP_OUT)/default/app.conf install build $(BUILD_NUMBER)
-	crudini --set $(MAIN_APP_OUT)/default/app.conf ui label $(MAIN_LABEL)
+
+	cp $(APPS_DIR)/$(MAIN_APP)/default/app.conf $(BUILD_DIR)/$(MAIN_APP)/default/app.conf
+	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf launcher version $(APP_VERSION)
+	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf launcher description $(MAIN_DESCRIPTION)
+	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf install build $(BUILD_NUMBER)
+	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf ui label $(MAIN_LABEL)
 	chmod o-w,g-w,a-x $@
 
 # Generate readme
 
 #Produced a normalized RST file with substitutions applied
-.INTERMEDIATE: $(BUILD_README_DIR)/rst/index.rst
-$(BUILD_README_DIR)/rst/index.rst: $(readme_files)
-	@$(SPHINXBUILD) -M rst -d out/README/doctrees $(README_TEMPLATE) $(BUILD_README_DIR)/rst $(SPHINXOPTS) -D rst_prolog="$$rst_prolog"
+.INTERMEDIATE: $(BUILD_README_DIR)/$(MAIN_APP)/rst/index.rst
+$(BUILD_README_DIR)/$(MAIN_APP)/rst/index.rst: $(readme_files)
+	@$(SPHINXBUILD) -M rst -d out/README/doctrees $(README_TEMPLATE) $(BUILD_README_DIR)/$(MAIN_APP)/rst $(SPHINXOPTS) -D rst_prolog="$$rst_prolog"
 
 
 
 #Convert Normalized rst to mardown format readme for the project
-$(MAIN_APP_OUT)/README.md: $(BUILD_README_DIR)/rst/index.rst
-		pandoc -s -t commonmark -o $(MAIN_APP_OUT)/README.md $(BUILD_README_DIR)/rst/index.rst
+$(BUILD_DIR)/$(MAIN_APP)/README.md: $(BUILD_README_DIR)/$(MAIN_APP)/rst/index.rst
+		pandoc -s -t commonmark -o $(BUILD_DIR)/$(MAIN_APP)/README.md $(BUILD_README_DIR)/$(MAIN_APP)/rst/index.rst
 		chmod o-w,g-w,a-x $@
 
 #Copy and update app.manifest
-$(MAIN_APP_OUT)/app.manifest: $(ALL_DIRS)\
+$(BUILD_DIR)/$(MAIN_APP)/app.manifest: $(ALL_DIRS)\
 															$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
-															$(MAIN_APP_OUT)/$(LICENSE_FILE) \
-															$(MAIN_APP_OUT)/default/app.conf \
+															$(BUILD_DIR)/$(MAIN_APP)/$(LICENSE_FILE) \
+															$(BUILD_DIR)/$(MAIN_APP)/default/app.conf \
 															$(APPS_DIR)/$(MAIN_APP)/app.manifest \
-															$(MAIN_APP_OUT)/README.md
+															$(BUILD_DIR)/$(MAIN_APP)/README.md
 
-	cp $(APPS_DIR)/$(MAIN_APP)/app.manifest $(MAIN_APP_OUT)/app.manifest
-	slim generate-manifest --update $(MAIN_APP_OUT) | sponge $(MAIN_APP_OUT)/app.manifest
-	jq '.info.title="$(MAIN_LABEL)"'  $(MAIN_APP_OUT)/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
-	jq '.info.description="$(MAIN_DESCRIPTION)"'  $(MAIN_APP_OUT)/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
-	jq '.info.license= { "name": "$(COPYRIGHT_LICENSE)", "text": "$(LICENSE_FILE)", "uri": "$(LICENSE_URL)" }'  $(MAIN_APP_OUT)/app.manifest | sponge $(MAIN_APP_OUT)/app.manifest
+	cp $(APPS_DIR)/$(MAIN_APP)/app.manifest $(BUILD_DIR)/$(MAIN_APP)/app.manifest
+	slim generate-manifest --update $(BUILD_DIR)/$(MAIN_APP) | sponge $(BUILD_DIR)/$(MAIN_APP)/app.manifest
+	jq '.info.title="$(MAIN_LABEL)"'  $(BUILD_DIR)/$(MAIN_APP)/app.manifest | sponge $(BUILD_DIR)/$(MAIN_APP)/app.manifest
+	jq '.info.description="$(MAIN_DESCRIPTION)"'  $(BUILD_DIR)/$(MAIN_APP)/app.manifest | sponge $(BUILD_DIR)/$(MAIN_APP)/app.manifest
+	jq '.info.license= { "name": "$(COPYRIGHT_LICENSE)", "text": "$(LICENSE_FILE)", "uri": "$(LICENSE_URL)" }'  $(BUILD_DIR)/$(MAIN_APP)/app.manifest | sponge $(BUILD_DIR)/$(MAIN_APP)/app.manifest
 	chmod o-w,g-w,a-x $@
 
 #Copy and update license file
-$(MAIN_APP_OUT)/$(LICENSE_FILE): $(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
+$(BUILD_DIR)/$(MAIN_APP)/$(LICENSE_FILE): $(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
 																 $(LICENSE_FILE)
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
-.INTERMEDIATE: $(BUILD_DOCS_DIR)/epub/$(EPUB_NAME).epub
-$(BUILD_DOCS_DIR)/epub/$(EPUB_NAME).epub: $(docs_files)
-	@$(SPHINXBUILD) -M epub "$(SPHINXSOURCEDIR)" "$(BUILD_DOCS_DIR)" $(SPHINXOPTS) -D epub_basename=$(EPUB_NAME) -D rst_prolog="$$rst_prolog"
+.INTERMEDIATE: $(BUILD_DOCS_DIR)/$(MAIN_APP)/epub/$(EPUB_NAME).epub
+$(BUILD_DOCS_DIR)/$(MAIN_APP)/epub/$(EPUB_NAME).epub: $(docs_files)
+	@$(SPHINXBUILD) -M epub "$(SPHINXSOURCEDIR)" "$(BUILD_DOCS_DIR)/$(MAIN_APP)/" $(SPHINXOPTS) -D epub_basename=$(EPUB_NAME) -D rst_prolog="$$rst_prolog"
 
-$(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(BUILD_DOCS_DIR)/epub/$(EPUB_NAME).epub
+$(BUILD_DIR)/$(MAIN_APP)/$(EPUB_NAME).epub: $(BUILD_DOCS_DIR)/$(MAIN_APP)/epub/$(EPUB_NAME).epub
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
@@ -166,17 +167,17 @@ $(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(BUILD_DOCS_DIR)/epub/$(EPUB_NAME).epub
 $(DEPS):
 	@echo $@
 	@echo ADD $(BUILD_DIR)/$@ /opt/splunk/etc/apps/$@ >>$(BUILD_DIR)/Dockerfile
-	$(MAKE) -C deps/$@ build PACKAGES_DIR=$(realpath $(PACKAGES_DIR))
+	$(MAKE) -C deps/$@ build PACKAGES_DIR=$(realpath $(PACKAGES_DIR)) BUILD_DIR=$(realpath $(BUILD_DIR))
 
-build: $(ALL_DIRS) $(DEPS) \
+build: $(ALL_DIRS) \
 				$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
-				$(MAIN_APP_OUT)/$(LICENSE_FILE)\
-				$(MAIN_APP_OUT)/app.manifest \
-				$(MAIN_APP_OUT)/$(EPUB_NAME).epub \
-				$(MAIN_APP_OUT)/README
+				$(BUILD_DIR)/$(MAIN_APP)/$(LICENSE_FILE)\
+				$(BUILD_DIR)/$(MAIN_APP)/app.manifest \
+				$(BUILD_DIR)/$(MAIN_APP)/$(EPUB_NAME).epub \
+				$(BUILD_DIR)/$(MAIN_APP)/README
 
 $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz: build
-	slim package -o $(PACKAGES_SPLUNK_BASE_DIR) $(MAIN_APP_OUT)
+	slim package -o $(PACKAGES_SPLUNK_BASE_DIR) $(BUILD_DIR)/$(MAIN_APP)
 
 package: ## Package each app
 package: $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz
@@ -201,13 +202,13 @@ docker_clean: $(shell docker ps -qa --no-trunc  --filter status=exited --filter 
 $(BUILD_DIR)/Dockerfile:
 	cp buildtools/Docker/standalone_dev/Dockerfile $(BUILD_DIR)/Dockerfile
 
-docker_build: $(BUILD_DIR) $(BUILD_DIR)/Dockerfile build
+docker_build: build $(BUILD_DIR)/Dockerfile  $(DEPS)
 	docker build -t $(DOCKER_IMG)-dev:latest -f $(BUILD_DIR)/Dockerfile .
 
 docker_run: docker_build
 	docker run \
 	      -it \
-				-v $(realpath $(MAIN_APP_OUT)):/opt/splunk/etc/apps/$(MAIN_APP) \
+				-v $(realpath $(BUILD_DIR)/$(MAIN_APP)):/opt/splunk/etc/apps/$(MAIN_APP) \
 				-p 8000:8000 \
 				-e 'SPLUNK_START_ARGS=--accept-license' \
 				-e 'SPLUNK_PASSWORD=Changed!11' \
