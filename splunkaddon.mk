@@ -168,8 +168,6 @@ $(DEPS):
 	@echo ADD $(BUILD_DIR)/$@ /opt/splunk/etc/apps/$@ >>$(BUILD_DIR)/Dockerfile
 	$(MAKE) -C deps/$@ build PACKAGES_DIR=$(realpath $(PACKAGES_DIR))
 
-#OUT_DIR=$(realpath $(PACKAGES_DIR_SPLUNK_DEPS))
-
 build: $(ALL_DIRS) $(DEPS) \
 				$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
 				$(MAIN_APP_OUT)/$(LICENSE_FILE)\
