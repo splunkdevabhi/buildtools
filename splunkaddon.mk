@@ -19,7 +19,7 @@ MAIN_APP_DESC     ?= Add on for Splunk
 main_app_files     = $(shell find $(APPS_DIR)/$(MAIN_APP) -type f ! -iname "app.manifest" ! -iname "app.conf" ! -iname ".*")
 MAIN_APP_OUT       = $(BUILD_DIR)/$(MAIN_APP)
 
-DEPS 							 := $(shell find deps -type d -print -maxdepth 1 -mindepth 1)
+DEPS 							 := $(shell find deps -type d -print -maxdepth 1 -mindepth 1 | awk -F/ '{print $$NF}')
 
 docs_files         = $(shell find docs -type f ! -iname ".*")
 README_TEMPLATE   ?= buildtools/templates/README
@@ -164,8 +164,9 @@ $(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(BUILD_DOCS_DIR)/epub/$(EPUB_NAME).epub
 
 .PHONY: $(DEPS)
 $(DEPS):
-	@echo ADD $(BUILD_DIR)/$(shell find $@ -type d -print -maxdepth 0 | awk -F/ '{print $$NF}') /opt/splunk/etc/apps/$(shell find $@ -type d -print -maxdepth 0 | awk -F/ '{print $$NF}') >>$(BUILD_DIR)/Dockerfile
-	$(MAKE) -C $@ build OUT_DIR=$(realpath $(PACKAGES_DIR_SPLUNK_DEPS)) BUILD_DIR=$(realpath $(BUILD_DIR))
+	@echo $@
+	@echo ADD $(BUILD_DIR)/$@ /opt/splunk/etc/apps/$@ >>$(BUILD_DIR)/Dockerfile
+	$(MAKE) -C deps/$@ build OUT_DIR=$(realpath $(PACKAGES_DIR_SPLUNK_DEPS))
 
 build: $(ALL_DIRS) $(DEPS) \
 				$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
@@ -200,7 +201,7 @@ docker_clean: $(shell docker ps -qa --no-trunc  --filter status=exited --filter 
 $(BUILD_DIR)/Dockerfile:
 	cp buildtools/Docker/standalone_dev/Dockerfile $(BUILD_DIR)/Dockerfile
 
-docker_build: $(BUILD_DIR)/Dockerfile build
+docker_build: $(BUILD_DIR) $(BUILD_DIR)/Dockerfile build
 	docker build -t $(DOCKER_IMG)-dev:latest -f $(BUILD_DIR)/Dockerfile .
 
 docker_run: docker_build
