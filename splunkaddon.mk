@@ -155,9 +155,8 @@ $(BUILD_DIR)/$(MAIN_APP)/$(LICENSE_FILE): $(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
-.INTERMEDIATE: $(BUILD_DOCS_DIR)/$(MAIN_APP)/epub/$(EPUB_NAME).epub
 $(BUILD_DOCS_DIR)/$(MAIN_APP)/epub/$(EPUB_NAME).epub: $(docs_files)
-	@$(SPHINXBUILD) -M epub "$(SPHINXSOURCEDIR)" "$(BUILD_DOCS_DIR)/$(MAIN_APP)/" $(SPHINXOPTS) -D epub_basename=$(EPUB_NAME) -D rst_prolog="$$rst_prolog"
+	@$(SPHINXBUILD) -M epub "$(SPHINXSOURCEDIR)" "$(BUILD_DOCS_DIR)/$(MAIN_APP)" $(SPHINXOPTS) -D epub_basename=$(EPUB_NAME) -D rst_prolog="$$rst_prolog"
 
 $(BUILD_DIR)/$(MAIN_APP)/$(EPUB_NAME).epub: $(BUILD_DOCS_DIR)/$(MAIN_APP)/epub/$(EPUB_NAME).epub
 	cp $< $@
