@@ -1,8 +1,11 @@
 
-APPS_DIR      ?= src
-OUT_DIR       ?= out
-BUILD_DIR     ?= $(OUT_DIR)/work
-TEST_RESULTS   = test-reports
+APPS_DIR       ?= src
+MAIN_APP       ?= $(shell ls -1 $(APPS_DIR))
+OUT_DIR        ?= out
+BUILD_DIR      ?= $(OUT_DIR)/work/$(MAIN_APP)
+BUILD_DOCS_DIR ?= $(OUT_DIR)/docs/$(MAIN_APP)
+BUILD_README_DIR ?= $(OUT_DIR)/README/$(MAIN_APP)
+TEST_RESULTS    = test-reports
 
 PACKAGES_DIR               = $(OUT_DIR)/packages
 PACKAGES_SPLUNK_BASE_DIR   = $(PACKAGES_DIR)/splunkbase
@@ -12,7 +15,6 @@ PACKAGES_DIR_SPLUNK_DEPS   = $(PACKAGES_DIR)/splunk_deps
 
 PACKAGE_DIRS = $(PACKAGES_DIR) $(PACKAGES_SPLUNK_BASE_DIR) $(PACKAGES_SPLUNK_SEMVER_DIR) $(PACKAGES_SPLUNK_SLIM_DIR) $(PACKAGES_DIR_SPLUNK_DEPS)
 
-MAIN_APP          ?= $(shell ls -1 $(APPS_DIR))
 MAIN_APP_DESC     ?= Add on for Splunk
 main_app_files     = $(shell find $(APPS_DIR)/$(MAIN_APP) -type f ! -iname "app.manifest" ! -iname "app.conf" ! -iname ".*")
 MAIN_APP_OUT       = $(BUILD_DIR)/$(MAIN_APP)
@@ -79,7 +81,7 @@ help: ## Show this help message.
 	@echo 'targets:'
 	@egrep '^(.+)\:\ ##\ (.+)' $(MAKEFILE_LIST) | column -t -c 2 -s ':#' | sed 's/^/  /'
 
-ALL_DIRS = $(OUT_DIR) $(BUILD_DIR) $(TEST_RESULTS) $(PACKAGE_DIRS)
+ALL_DIRS = $(OUT_DIR) $(BUILD_DIR) $(TEST_RESULTS) $(PACKAGE_DIRS) $(BUILD_DOCS_DIR)
 
 .PHONY: CHECK_ENV
 CHECK_ENV: ##Check the environment
@@ -120,15 +122,15 @@ $(MAIN_APP_OUT)/default/app.conf: $(ALL_DIRS)\
 # Generate readme
 
 #Produced a normalized RST file with substitutions applied
-.INTERMEDIATE: out/README/rst/index.rst
-out/README/rst/index.rst: $(readme_files)
-	@$(SPHINXBUILD) -M rst -d out/README/doctrees $(README_TEMPLATE) out/README/rst $(SPHINXOPTS) -D rst_prolog="$$rst_prolog"
+.INTERMEDIATE: $(BUILD_README_DIR)/rst/index.rst
+$(BUILD_README_DIR)/rst/index.rst: $(readme_files)
+	@$(SPHINXBUILD) -M rst -d out/README/doctrees $(README_TEMPLATE) $(BUILD_README_DIR)/rst $(SPHINXOPTS) -D rst_prolog="$$rst_prolog"
 
 
 
 #Convert Normalized rst to mardown format readme for the project
-$(MAIN_APP_OUT)/README.md: out/README/rst/index.rst
-		pandoc -s -t commonmark -o $(MAIN_APP_OUT)/README.md out/README/rst/index.rst
+$(MAIN_APP_OUT)/README.md: $(BUILD_README_DIR)/rst/index.rst
+		pandoc -s -t commonmark -o $(MAIN_APP_OUT)/README.md $(BUILD_README_DIR)/rst/index.rst
 		chmod o-w,g-w,a-x $@
 
 #Copy and update app.manifest
@@ -152,11 +154,11 @@ $(MAIN_APP_OUT)/$(LICENSE_FILE): $(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
-.INTERMEDIATE: $(OUT_DIR)/docs/epub/$(EPUB_NAME).epub
-$(OUT_DIR)/docs/epub/$(EPUB_NAME).epub: $(docs_files)
-	@$(SPHINXBUILD) -M epub "$(SPHINXSOURCEDIR)" "$(SPHINXBUILDDIR)" $(SPHINXOPTS) -D epub_basename=$(EPUB_NAME) -D rst_prolog="$$rst_prolog"
+.INTERMEDIATE: $(BUILD_DOCS_DIR)/epub/$(EPUB_NAME).epub
+$(BUILD_DOCS_DIR)/epub/$(EPUB_NAME).epub: $(docs_files)
+	@$(SPHINXBUILD) -M epub "$(SPHINXSOURCEDIR)" "$(BUILD_DOCS_DIR)" $(SPHINXOPTS) -D epub_basename=$(EPUB_NAME) -D rst_prolog="$$rst_prolog"
 
-$(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(OUT_DIR)/docs/epub/$(EPUB_NAME).epub
+$(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(BUILD_DOCS_DIR)/epub/$(EPUB_NAME).epub
 	cp $< $@
 	chmod o-w,g-w,a-x $@
 
