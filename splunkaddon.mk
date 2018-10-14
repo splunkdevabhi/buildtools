@@ -1,10 +1,10 @@
 
-APPS_DIR       ?= src
-MAIN_APP       ?= $(shell ls -1 $(APPS_DIR))
-OUT_DIR        ?= out
-BUILD_DIR      ?= $(OUT_DIR)/work/$(MAIN_APP)
-BUILD_DOCS_DIR ?= $(OUT_DIR)/docs/$(MAIN_APP)
-BUILD_README_DIR ?= $(OUT_DIR)/README/$(MAIN_APP)
+APPS_DIR         ?= src
+MAIN_APP         ?= $(shell ls -1 $(APPS_DIR))
+OUT_DIR          ?= out
+BUILD_DIR        ?= out/work/$(MAIN_APP)
+BUILD_DOCS_DIR   ?= out/docs/$(MAIN_APP)
+BUILD_README_DIR ?= out/README/$(MAIN_APP)
 TEST_RESULTS    = test-reports
 
 PACKAGES_DIR               = $(OUT_DIR)/packages
@@ -166,7 +166,9 @@ $(MAIN_APP_OUT)/$(EPUB_NAME).epub: $(BUILD_DOCS_DIR)/epub/$(EPUB_NAME).epub
 $(DEPS):
 	@echo $@
 	@echo ADD $(BUILD_DIR)/$@ /opt/splunk/etc/apps/$@ >>$(BUILD_DIR)/Dockerfile
-	$(MAKE) -C deps/$@ build OUT_DIR=$(realpath $(PACKAGES_DIR_SPLUNK_DEPS))
+	$(MAKE) -C deps/$@ build PACKAGES_DIR=$(realpath $(PACKAGES_DIR))
+
+#OUT_DIR=$(realpath $(PACKAGES_DIR_SPLUNK_DEPS))
 
 build: $(ALL_DIRS) $(DEPS) \
 				$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
