@@ -116,9 +116,9 @@ $(BUILD_DIR)/$(MAIN_APP)/default/app.conf: $(ALL_DIRS)\
 
 	cp $(APPS_DIR)/$(MAIN_APP)/default/app.conf $(BUILD_DIR)/$(MAIN_APP)/default/app.conf
 	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf launcher version $(APP_VERSION)
-	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf launcher description $(MAIN_DESCRIPTION)
+	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf launcher description "$(MAIN_DESCRIPTION)"
 	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf install build $(BUILD_NUMBER)
-	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf ui label $(MAIN_LABEL)
+	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf ui label "$(MAIN_LABEL)"
 	chmod o-w,g-w,a-x $@
 
 # Generate readme

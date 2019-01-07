@@ -1,0 +1,4 @@
+http://download.splunk.com/misc/appinspect/splunk-appinspect-1.5.4.145.tar.gz
+semantic_version
+http://download.splunk.com/misc/packaging-toolkit/splunk-packaging-toolkit-1.0.0.tar.gz
+Sphinx
