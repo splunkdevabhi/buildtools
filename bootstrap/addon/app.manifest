@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0.0",
+  "info": {
+    "title": "CEF Microsoft Windows for Splunk",
+    "id": {
+      "group": null,
+      "name": "TA-cef-microsoft-windows-for-splunk",
+      "version": "1.0.0"
+    },
+    "author": [
+      {
+        "name": "Ryan Faircloth",
+        "email": null,
+        "company": null
+      }
+    ],
+    "releaseDate": null,
+    "description": "",
+    "classification": {
+      "intendedAudience": null,
+      "categories": [],
+      "developmentStatus": null
+    },
+    "commonInformationModels": {
+    		"Application_State": ">=4.10.0",
+    		"Authentication": ">=4.10.0",
+    		"Change_Analysis": ">=4.10.0",
+    		"Compute_Inventory": ">=4.10.0",
+    		"Network_Sessions": ">=4.10.0",
+    		"Performance": ">=4.10.0",
+    		"Updates": ">=4.10.0",
+    		"Vulnerabilities": ">=4.10.0"
+    },
+    "license": {
+      "name": null,
+      "text": null,
+      "uri": null
+    },
+    "privacyPolicy": {
+      "name": "Splunk Privacy Policy",
+      "text": null,
+      "uri": "https://www.splunk.com/en_us/legal/privacy/privacy-policy.html"
+    },
+    "releaseNotes": {
+      "name": null,
+      "text": null,
+      "uri": null
+    }
+  },
+  "dependencies": {
+      "Splunk_TA_windows": {
+        "version": ">=5.0.1",
+        "optional": true,
+        "package": null,
+        "targetOS": [
+          "*"
+        ]
+      },
+      "TA-cef-for-splunk": {
+        "version": ">=0.1.0",
+        "optional": true,
+        "package": null,
+        "targetOS": [
+          "*"
+        ]
+      }
+  },
+  "tasks": [],
+  "inputGroups": {
+  },
+  "incompatibleApps": {
+  },
+  "platformRequirements": {
+    "splunk": {
+      "Enterprise": "*"
+    }
+  }
+}
