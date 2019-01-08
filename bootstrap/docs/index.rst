@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CEF Microsoft Windows Add on for Splunk's documentation!
+Welcome to CEF Imperva Incapsula Add on for Splunk's documentation!
 ===================================================================
 
-This add on implements the foundations for Microsoft Windows when processed by the ArcSight connector into CEF format. For events available and provided in samples/* CIM compliance appears to be valid. Using CEF as an intermediary requires acceptance of the risk incorrect mapping by the connector can not be detected after the fact using raw. What you see is what you get.
+This add on implements the a Splunk add-on for the Imperva Incapsula service
 
 
 Requirements
@@ -17,7 +17,6 @@ This add on has index time extractions and must be installed on the indexer or h
 - Splunk Enterprise 7.1 or newer
 - Splunk Common Information Model 4.11 or newer
 - CEF add on for Splunk 0.1.1 or newer
-- Splunk TA Windows 5.0.1 or newer
 
 
 Installation
