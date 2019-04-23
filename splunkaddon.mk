@@ -198,6 +198,7 @@ test-reports/$(MAIN_APP)-cloud.xml: $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PA
 test-reports/$(MAIN_APP)-self-service.xml: $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz
 	splunk-appinspect inspect $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz --data-format junitxml --output-file test-reports/$(MAIN_APP)-self-service.xml --excluded-tags manual --excluded-tags prerelease  --included-tags self-service
 
+.PHONY: package_test
 package_test: ## Package Test
 package_test: test-reports/$(MAIN_APP)-appapproval.xml \
 	 			      test-reports/$(MAIN_APP)-splunk_appinspect.xml \
