@@ -38,18 +38,16 @@ APP_VERSION        = $(VERSION)
 DOCKER_IMG				= $(shell echo $(MAIN_APP) | tr '[:upper:]' '[:lower:]')
 
 
-ifneq (,$(findstring master, $(BRANCH) ))
-	VERSION=$(shell gitversion /showvariable MajorMinorPatch)
+
+VERSION=$(shell gitversion /showvariable MajorMinorPatch)
+
+PACKAGE_SLUG=D$(COMMIT_ID)
+ifneq (,$(findstring $(BRANCH),"master"))
 	PACKAGE_SLUG=R$(COMMIT_ID)
-	PACKAGE_VERSION=$(VERSION)-$(PACKAGE_SLUG)
-	APP_VERSION=$(VERSION)$(PACKAGE_SLUG)
 endif
-ifneq (,$(findstring release, $(BRANCH) ))
-	VERSION=$(shell gitversion /showvariable MajorMinorPatch)
-	PACKAGE_SLUG=B$(COMMIT_ID)
-	PACKAGE_VERSION=$(VERSION)-$(PACKAGE_SLUG)
-	APP_VERSION=$(VERSION)$(PACKAGE_SLUG)
-endif
+
+PACKAGE_VERSION=$(VERSION)-$(PACKAGE_SLUG)
+APP_VERSION=$(VERSION)$(PACKAGE_SLUG)
 
 COPYRIGHT_DOCKER_IMAGE = splseckit/copyright-header:latest
 COPYRIGHT_CMD ?= docker run --rm --volume `pwd`:/usr/src/ $(COPYRIGHT_DOCKER_IMAGE)
