@@ -186,14 +186,23 @@ $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz: build
 package: ## Package each app
 package: $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz
 
-test-reports/$(MAIN_APP).xml: $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz
+test-reports/$(MAIN_APP)-appapproval.xml: $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz
 	splunk-appinspect inspect $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz --data-format junitxml --output-file test-reports/$(MAIN_APP)-appapproval.xml --excluded-tags manual --excluded-tags prerelease  --included-tags appapproval
+
+test-reports/$(MAIN_APP)-splunk_appinspect.xml: $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz
 	splunk-appinspect inspect $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz --data-format junitxml --output-file test-reports/$(MAIN_APP)-splunk_appinspect.xml --excluded-tags manual --excluded-tags prerelease  --included-tags splunk_appinspect
+
+test-reports/$(MAIN_APP)-cloud.xml: $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz
 	splunk-appinspect inspect $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz --data-format junitxml --output-file test-reports/$(MAIN_APP)-cloud.xml --excluded-tags manual --excluded-tags prerelease  --included-tags cloud
+
+test-reports/$(MAIN_APP)-self-service.xml: $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz
 	splunk-appinspect inspect $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz --data-format junitxml --output-file test-reports/$(MAIN_APP)-self-service.xml --excluded-tags manual --excluded-tags prerelease  --included-tags self-service
 
 package_test: ## Package Test
-package_test: test-reports/$(MAIN_APP).xml
+package_test: test-reports/$(MAIN_APP)-appapproval.xml \
+	 			      test-reports/$(MAIN_APP)-splunk_appinspect.xml \
+							test-reports/$(MAIN_APP)-cloud.xml \
+							test-reports/$(MAIN_APP)-self-service.xml
 
 docker_package:
 	docker run --rm --volume `pwd`:/usr/build -w /usr/build -it splservices/addonbuildimage bash -c "make package_test"
