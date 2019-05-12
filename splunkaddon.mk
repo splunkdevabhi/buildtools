@@ -4,7 +4,6 @@ MAIN_APP         ?= $(shell ls -1 $(APPS_DIR))
 OUT_DIR          ?= out
 BUILD_DIR        ?= out/app
 BUILD_DOCS_DIR   ?= out/docs
-BUILD_README_DIR ?= out/README
 TEST_RESULTS    = test-reports
 
 PACKAGES_DIR               = $(OUT_DIR)/packages
@@ -23,8 +22,6 @@ DEPS 							 := $(shell find deps -type d -print -maxdepth 1 -mindepth 1 | awk -
 DEPSPRIVATE				 := $(shell find depsprivate -type d -print -maxdepth 1 -mindepth 1 | awk -F/ '{print $$NF}')
 
 docs_files         = $(shell find docs -type f ! -iname ".*")
-README_TEMPLATE   ?= buildtools/templates/README
-readme_files       = $(shell find $(README_TEMPLATE) -type f ! -iname ".*")
 
 RELEASE            = $(shell gitversion /showvariable FullSemVer)
 BUILD_NUMBER      ?= 0000
@@ -104,7 +101,7 @@ $(ALL_DIRS):
 $(BUILD_DIR)/%: $(APPS_DIR)/%
 	mkdir -p $(@D)
 #	@chmod o-w,g-w,a+X  $(@D)
-	cp $< $@
+	cp -L $< $@
 	chmod o-w,g-w,a-x $@
 
 # Copy and update app.conf
@@ -118,15 +115,6 @@ $(BUILD_DIR)/$(MAIN_APP)/default/app.conf: $(ALL_DIRS)\
 	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf install build $(BUILD_NUMBER)
 	crudini --set $(BUILD_DIR)/$(MAIN_APP)/default/app.conf ui label "$(MAIN_LABEL)"
 	chmod o-w,g-w,a-x $@
-
-# Generate readme
-
-#Produced a normalized RST file with substitutions applied
-.INTERMEDIATE: $(BUILD_README_DIR)/$(MAIN_APP)/rst/index.rst
-$(BUILD_README_DIR)/$(MAIN_APP)/rst/index.rst: $(readme_files)
-	@$(SPHINXBUILD) -M rst -d out/README/doctrees $(README_TEMPLATE) $(BUILD_README_DIR)/$(MAIN_APP)/rst $(SPHINXOPTS) -D rst_prolog="$$rst_prolog"
-
-
 
 #Copy and update app.manifest
 $(BUILD_DIR)/$(MAIN_APP)/app.manifest: $(ALL_DIRS)\
