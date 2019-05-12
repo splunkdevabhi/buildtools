@@ -128,18 +128,12 @@ $(BUILD_README_DIR)/$(MAIN_APP)/rst/index.rst: $(readme_files)
 
 
 
-#Convert Normalized rst to mardown format readme for the project
-$(BUILD_DIR)/$(MAIN_APP)/README.md: $(BUILD_README_DIR)/$(MAIN_APP)/rst/index.rst
-		pandoc -s -t commonmark -o $(BUILD_DIR)/$(MAIN_APP)/README.md $(BUILD_README_DIR)/$(MAIN_APP)/rst/index.rst
-		chmod o-w,g-w,a-x $@
-
 #Copy and update app.manifest
 $(BUILD_DIR)/$(MAIN_APP)/app.manifest: $(ALL_DIRS)\
 															$(patsubst $(APPS_DIR)/%,$(BUILD_DIR)/%,$(main_app_files)) \
 															$(BUILD_DIR)/$(MAIN_APP)/$(LICENSE_FILE) \
 															$(BUILD_DIR)/$(MAIN_APP)/default/app.conf \
-															$(APPS_DIR)/$(MAIN_APP)/app.manifest \
-															$(BUILD_DIR)/$(MAIN_APP)/README.md
+															$(APPS_DIR)/$(MAIN_APP)/app.manifest
 
 	cp $(APPS_DIR)/$(MAIN_APP)/app.manifest $(BUILD_DIR)/$(MAIN_APP)/app.manifest
 	slim generate-manifest --update $(BUILD_DIR)/$(MAIN_APP) | sponge $(BUILD_DIR)/$(MAIN_APP)/app.manifest
@@ -176,7 +170,6 @@ build: $(ALL_DIRS) \
 				$(BUILD_DIR)/$(MAIN_APP)/$(LICENSE_FILE)\
 				$(BUILD_DIR)/$(MAIN_APP)/app.manifest \
 				$(BUILD_DIR)/$(MAIN_APP)/$(EPUB_NAME).epub \
-				$(BUILD_DIR)/$(MAIN_APP)/README.md
 
 $(PACKAGES_SPLUNK_BASE_DIR)/$(MAIN_APP)-$(PACKAGE_VERSION).tar.gz: build
 	slim package -o $(PACKAGES_SPLUNK_BASE_DIR) $(BUILD_DIR)/$(MAIN_APP)
