@@ -15,7 +15,7 @@ PACKAGES_DIR_SPLUNK_DEPS   = $(PACKAGES_DIR)/splunk_deps
 PACKAGE_DIRS = $(PACKAGES_DIR) $(PACKAGES_SPLUNK_BASE_DIR) $(PACKAGES_SPLUNK_SEMVER_DIR) $(PACKAGES_SPLUNK_SLIM_DIR) $(PACKAGES_DIR_SPLUNK_DEPS)
 
 MAIN_APP_DESC     ?= Add on for Splunk
-main_app_files     = $(shell find $(APPS_DIR)/$(MAIN_APP) -type f ! -iname "app.manifest" ! -iname "app.conf" ! -iname ".*")
+main_app_files     = $(shell find $(APPS_DIR)/$(MAIN_APP) -type f ! -iname "app.manifest" ! -iname "app.conf" ! -iname "*.pyc" ! -iname ".*" | sort)
 MAIN_APP_OUT       = $(BUILD_DIR)/$(MAIN_APP)
 
 DEPS 							 := $(shell find deps -type d -print -maxdepth 1 -mindepth 1 | awk -F/ '{print $$NF}')
